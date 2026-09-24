@@ -1,0 +1,83 @@
+[
+  {
+    "source": "weather",
+    "event_type": "rain",
+    "timestamp": "2026-09-24T15:00:00Z",
+    "zone_id": "ZONE-A",
+    "value": 12,
+    "unit": "mm",
+    "metadata": {}
+  },
+  {
+    "source": "traffic",
+    "event_type": "congestion",
+    "timestamp": "2026-09-24T15:00:00Z",
+    "zone_id": "ZONE-A",
+    "value": 30,
+    "unit": "%",
+    "metadata": {}
+  },
+  {
+    "source": "incident",
+    "event_type": "complaint",
+    "timestamp": "2026-09-24T15:00:00Z",
+    "zone_id": "ZONE-A",
+    "value": 3,
+    "unit": "count",
+    "metadata": {}
+  },
+  {
+    "source": "weather",
+    "event_type": "rain",
+    "timestamp": "2026-09-24T15:05:00Z",
+    "zone_id": "ZONE-A",
+    "value": 35,
+    "unit": "mm",
+    "metadata": {}
+  },
+  {
+    "source": "traffic",
+    "event_type": "congestion",
+    "timestamp": "2026-09-24T15:05:00Z",
+    "zone_id": "ZONE-A",
+    "value": 55,
+    "unit": "%",
+    "metadata": {}
+  },
+  {
+    "source": "incident",
+    "event_type": "complaint",
+    "timestamp": "2026-09-24T15:05:00Z",
+    "zone_id": "ZONE-A",
+    "value": 7,
+    "unit": "count",
+    "metadata": {}
+  },
+  {
+    "source": "weather",
+    "event_type": "rain",
+    "timestamp": "2026-09-24T15:10:00Z",
+    "zone_id": "ZONE-A",
+    "value": 62,
+    "unit": "mm",
+    "metadata": {}
+  },
+  {
+    "source": "traffic",
+    "event_type": "congestion",
+    "timestamp": "2026-09-24T15:10:00Z",
+    "zone_id": "ZONE-A",
+    "value": 82,
+    "unit": "%",
+    "metadata": {}
+  },
+  {
+    "source": "incident",
+    "event_type": "complaint",
+    "timestamp": "2026-09-24T15:10:00Z",
+    "zone_id": "ZONE-A",
+    "value": 18,
+    "unit": "count",
+    "metadata": {}
+  }
+]
