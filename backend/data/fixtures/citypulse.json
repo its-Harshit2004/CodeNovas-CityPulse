@@ -1,55 +1,43 @@
 {
-  "weather": [
+  "zones": [
     {
-      "timestamp": "2026-09-24T15:00:00Z",
-      "zone": "ZONE-A",
-      "rainfall": 12
-    },
-    {
-      "timestamp": "2026-09-24T15:05:00Z",
-      "zone": "ZONE-A",
-      "rainfall": 35
-    },
-    {
+      "zone_id": "A",
       "timestamp": "2026-09-24T15:10:00Z",
-      "zone": "ZONE-A",
-      "rainfall": 62
-    }
-  ],
-
-  "traffic": [
-    {
-      "timestamp": "2026-09-24T15:00:00Z",
-      "zone": "ZONE-A",
-      "congestion": 30
+      "weather": {
+        "rain_mm": 62
+      },
+      "traffic": {
+        "congestion_pct": 82
+      },
+      "incidents": {
+        "count": 18
+      }
     },
     {
-      "timestamp": "2026-09-24T15:05:00Z",
-      "zone": "ZONE-A",
-      "congestion": 55
-    },
-    {
+      "zone_id": "B",
       "timestamp": "2026-09-24T15:10:00Z",
-      "zone": "ZONE-A",
-      "congestion": 82
-    }
-  ],
-
-  "incidents": [
-    {
-      "timestamp": "2026-09-24T15:00:00Z",
-      "zone": "ZONE-A",
-      "complaints": 3
+      "weather": {
+        "rain_mm": 35
+      },
+      "traffic": {
+        "congestion_pct": 55
+      },
+      "incidents": {
+        "count": 7
+      }
     },
     {
-      "timestamp": "2026-09-24T15:05:00Z",
-      "zone": "ZONE-A",
-      "complaints": 7
-    },
-    {
+      "zone_id": "C",
       "timestamp": "2026-09-24T15:10:00Z",
-      "zone": "ZONE-A",
-      "complaints": 18
+      "weather": {
+        "rain_mm": 12
+      },
+      "traffic": {
+        "congestion_pct": 30
+      },
+      "incidents": {
+        "count": 3
+      }
     }
   ]
 }
