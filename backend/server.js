@@ -20,22 +20,15 @@ app.use("/api/pulse", pulseRouter);
 app.use("/api/alerts", alertsRouter);
 
 // Analytics API
-app.get("/api/dashboard", (req, res) => {
+app.get("/api/dashboard", async (req, res) => {
   try {
-    const summaries = zones.map((zone) => {
-      const data = sampleData[zone.id] || sampleData[zone.zone_id];
+    const summaries = await Promise.all(
+      Object.keys(sampleData).map(async (zoneId) => {
+        const data = sampleData[zoneId];
 
-      if (!data) {
-        return {
-          zone_id: zone.id || zone.zone_id,
-          severity: "normal",
-          alert: false,
-          llm_statement: "No sample data available."
-        };
-      }
-
-      return analyze(data);
-    });
+        return await analyze(data);
+      })
+    );
 
     res.json({
       success: true,
@@ -44,13 +37,13 @@ app.get("/api/dashboard", (req, res) => {
     });
   } catch (error) {
     console.error("Dashboard analysis failed:", error);
+
     res.status(500).json({
       success: false,
       error: "Failed to analyze dashboard data"
     });
   }
 });
-
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({
