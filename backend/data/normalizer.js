@@ -1,31 +1,51 @@
-const path = require('path');
-const fs = require('fs');
+const fs = require("fs");
+const path = require("path");
 
-/**
- * Returns normalized civic data for a specific zone from the JSON fixture store.
- * @param {string} zoneId - e.g. "A", "B", "C"
- */
-async function getNormalizedData(zoneId) {
-  try {
-    const filePath = path.join(__dirname, 'fixtures', 'citypulse.json');
-    const rawData = fs.readFileSync(filePath, 'utf-8');
-    const records = JSON.parse(rawData);
+const fixturePath = path.join(__dirname, "fixtures", "citypulse.json");
 
-    const targetRecord = records.find(
-      (r) => r.zone_id.toUpperCase() === zoneId.toUpperCase()
-    );
+function loadFixtureData() {
+  const rawData = JSON.parse(fs.readFileSync(fixturePath, "utf-8"));
 
-    if (!targetRecord) {
-      return records[0]; // Default fallback to Zone A
-    }
+  return rawData.zones.sort((a, b) => a.zone_id.localeCompare(b.zone_id));
+}
 
-    return targetRecord;
-  } catch (error) {
-    console.error('Error reading normalized data fixture:', error);
-    throw error;
-  }
+function getAllNormalizedData() {
+  return loadFixtureData();
+}
+
+function getNormalizedData(zoneId) {
+  const zones = loadFixtureData();
+
+  const zone = zones.find(
+    (item) => item.zone_id.toUpperCase() === zoneId.toUpperCase()
+  );
+
+  return zone || null;
+}
+
+function saveNormalizedOutput() {
+  const normalizedData = getAllNormalizedData();
+  const outputPath = path.join(
+    __dirname,
+    "fixtures",
+    "normalized-events.json"
+  );
+
+  fs.writeFileSync(outputPath, JSON.stringify(normalizedData, null, 2));
+
+  console.log("\n--------------------------------");
+  console.log("CITYPULSE NORMALIZED DATA");
+  console.log("--------------------------------\n");
+  console.log(JSON.stringify(normalizedData, null, 2));
+  console.log(`\nSaved to: ${outputPath}`);
+}
+
+if (require.main === module) {
+  saveNormalizedOutput();
 }
 
 module.exports = {
-  getNormalizedData
+  getNormalizedData,
+  getAllNormalizedData,
+  saveNormalizedOutput,
 };
