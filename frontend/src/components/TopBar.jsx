@@ -12,9 +12,9 @@ const TopBar = () => {
         
         {/* Weather Strip */}
         <div className="hidden lg:flex items-center gap-4 text-sm text-text-secondary border-l border-[var(--navy-border)] pl-4">
-          <span className="flex items-center gap-1"><Cloud size={14}/> 24°C</span>
-          <span className="flex items-center gap-1"><Wind size={14}/> 12 km/h</span>
-          <span className="flex items-center gap-1"><Droplets size={14}/> 70%</span>
+          <span className="flex items-center gap-1"><Cloud size={14}/> —</span>
+          <span className="flex items-center gap-1"><Wind size={14}/> —</span>
+          <span className="flex items-center gap-1"><Droplets size={14}/> —</span>
         </div>
       </div>
 
@@ -45,13 +45,15 @@ const TopBar = () => {
           <RefreshCw size={16} />
         </button>
 
-        <button 
-          onClick={resetDemo}
-          className="text-xs border border-[var(--navy-border)] px-2 py-1 rounded hover:bg-[var(--navy-panel-hover)] text-text-muted transition-colors"
-          title="Reset Demo Scenario"
-        >
-          Reset Demo
-        </button>
+        {import.meta.env.VITE_USE_MOCK === 'true' && (
+          <button 
+            onClick={resetDemo}
+            className="text-xs border border-[var(--navy-border)] px-2 py-1 rounded hover:bg-[var(--navy-panel-hover)] text-text-muted transition-colors"
+            title="Reset Demo Scenario"
+          >
+            Reset Demo
+          </button>
+        )}
       </div>
     </header>
   );

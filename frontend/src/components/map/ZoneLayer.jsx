@@ -27,8 +27,14 @@ const ZoneLayer = ({ zones, mode, selectedZoneId, onSelectZone, onHoverZone, pre
   };
 
   // Keep state outside of React re-render by updating Leaflet styles directly
+  const activeFeatures = useMemo(() => {
+    if (!zones || zones.length === 0) return zoneGeometry.features;
+    const zoneIds = new Set(zones.map(z => z.id));
+    return zoneGeometry.features.filter(f => zoneIds.has(f.id));
+  }, [zones]);
+
   useEffect(() => {
-    zoneGeometry.features.forEach(feature => {
+    activeFeatures.forEach(feature => {
       const pRef = polygonRefs.current[feature.id];
       if (!pRef) return;
       
@@ -45,7 +51,7 @@ const ZoneLayer = ({ zones, mode, selectedZoneId, onSelectZone, onHoverZone, pre
         className: status === 'red' ? 'drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : ''
       });
     });
-  }, [zones, mode, selectedZoneId, predictionHorizon]);
+  }, [zones, mode, selectedZoneId, predictionHorizon, activeFeatures]);
 
   const handleMouseOver = (e, featureId) => {
     const pRef = polygonRefs.current[featureId];
@@ -66,7 +72,7 @@ const ZoneLayer = ({ zones, mode, selectedZoneId, onSelectZone, onHoverZone, pre
   };
 
   const memoizedPolygons = useMemo(() => {
-    return zoneGeometry.features.map(feature => {
+    return activeFeatures.map(feature => {
       const positions = geo.toLeafletCoords(feature.geometry.coordinates);
       return (
         <Polygon
@@ -81,7 +87,7 @@ const ZoneLayer = ({ zones, mode, selectedZoneId, onSelectZone, onHoverZone, pre
         />
       );
     });
-  }, [onSelectZone]);
+  }, [onSelectZone, activeFeatures]);
 
   return <>{memoizedPolygons}</>;
 };

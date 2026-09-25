@@ -70,12 +70,19 @@ const ZoneDetailsPanelContent = ({ zone, activeSignals, onClose }) => {
                   <div className="text-right">
                     <div className="text-xs text-text-secondary">Base: {sig.baseline ?? '—'}</div>
                     <div className={`text-xs font-medium ${sig.deltaPct > 0 ? (def.higherIsWorse ? 'text-amber-400' : 'text-green-400') : (def.higherIsWorse ? 'text-green-400' : 'text-amber-400')}`}>
-                      {sig.deltaPct > 0 ? '+' : ''}{sig.deltaPct || 0}%
+                      {sig.deltaPct !== undefined && sig.deltaPct !== null ? `${sig.deltaPct > 0 ? '+' : ''}${sig.deltaPct}%` : '—'}
                     </div>
                   </div>
                 </div>
-                <div className="text-[10px] text-text-muted flex items-center gap-1 mt-1 border-t border-[var(--navy-border)] pt-2">
-                  <Clock size={10} /> updated {sig.updatedAt ? dayjs(sig.updatedAt).format('HH:mm:ss') : '—'}
+                <div className="text-[10px] text-text-muted flex items-center justify-between mt-1 border-t border-[var(--navy-border)] pt-2">
+                  <div className="flex items-center gap-1">
+                    <Clock size={10} /> updated {sig.updatedAt ? dayjs(sig.updatedAt).format('HH:mm:ss') : '—'}
+                  </div>
+                  {sig.source && (
+                    <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${sig.source === 'live' ? 'bg-blue-900/40 text-blue-300' : 'bg-gray-800 text-gray-400'}`}>
+                      {sig.source}
+                    </div>
+                  )}
                 </div>
               </div>
             );

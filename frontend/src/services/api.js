@@ -32,18 +32,21 @@ const normalizePayload = (data) => {
         signals.traffic = {
           value: bz.metrics.traffic_pct,
           status: bz.signal_status?.traffic || 'grey',
+          source: bz.source_status.traffic || 'fixture',
           updatedAt: bz.updated_at
         };
         
         signals.rainfall = {
           value: bz.metrics.rain_mm,
           status: bz.signal_status?.rainfall || 'grey',
+          source: bz.source_status.weather || 'fixture',
           updatedAt: bz.updated_at
         };
         
         signals.incidents = {
           value: bz.metrics.incidents,
           status: bz.signal_status?.incidents || 'grey',
+          source: bz.source_status.incidents || 'fixture',
           updatedAt: bz.updated_at
         };
       }

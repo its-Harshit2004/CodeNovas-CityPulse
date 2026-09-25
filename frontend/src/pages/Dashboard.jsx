@@ -26,10 +26,12 @@ const Dashboard = () => {
   const activeAlerts = events.filter(e => e.status !== 'green').length;
   
   // Basic overall stats
-  let maxRisk = 0;
+  let maxRisk = null;
   let worseStatus = 'green';
   zones.forEach(z => {
-    if (z.overall?.riskScore > maxRisk) maxRisk = z.overall.riskScore;
+    if (z.overall?.riskScore !== undefined && z.overall?.riskScore !== null) {
+      if (maxRisk === null || z.overall.riskScore > maxRisk) maxRisk = z.overall.riskScore;
+    }
     if (z.overall?.status === 'red') worseStatus = 'red';
     else if (z.overall?.status === 'amber' && worseStatus !== 'red') worseStatus = 'amber';
   });
@@ -46,7 +48,7 @@ const Dashboard = () => {
             <StatusBadge status={worseStatus} className="px-3 py-1 text-sm" />
           </div>
           <div className="flex gap-6 text-sm">
-            <div>Risk Score: <span className="font-mono font-bold text-lg">{maxRisk}</span><span className="text-text-muted">/100 max</span></div>
+            <div>Risk Score: <span className="font-mono font-bold text-lg">{maxRisk !== null ? maxRisk : '—'}</span><span className="text-text-muted">/100 max</span></div>
             <div>Active Events: <span className="font-mono font-bold text-lg text-amber-400">{activeAlerts}</span></div>
           </div>
         </div>
@@ -104,7 +106,7 @@ const Dashboard = () => {
                   <StatusBadge status={z.overall?.status} />
                   <span className="text-sm font-semibold">{z.name || 'Unknown'}</span>
                 </div>
-                <span className="text-xs text-text-muted font-mono">{z.overall?.riskScore ?? 0}/100</span>
+                <span className="text-xs text-text-muted font-mono">{z.overall?.riskScore !== undefined && z.overall?.riskScore !== null ? `${z.overall.riskScore}/100` : '—'}</span>
               </button>
             ))}
           </div>

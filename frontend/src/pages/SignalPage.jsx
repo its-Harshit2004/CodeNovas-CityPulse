@@ -51,7 +51,17 @@ const SignalPage = () => {
   });
   
   const worstZone = sortedZones[0];
-  const insightText = worstZone ? `${def.label} analysis indicates ${worstZone.name || 'Unknown Zone'} is showing the most significant deviation (${worstZone.signals?.[signalId]?.deltaPct || 0}%) from historical baselines.` : `No significant ${def.label} deviations detected.`;
+  
+  let insightText = "No anomaly detected in the current reading.";
+  if (worstZone) {
+    if (worstZone.overall?.summary && worstZone.overall?.summary !== "No data available") {
+      insightText = worstZone.overall.summary;
+    } else if (worstZone.evidence && worstZone.evidence.length > 0) {
+      insightText = worstZone.evidence.join(' ');
+    } else if (worstZone.signals?.[signalId]?.deltaPct !== undefined && worstZone.signals?.[signalId]?.deltaPct !== null) {
+      insightText = `${def.label} analysis indicates ${worstZone.name || 'Unknown Zone'} is showing a deviation of ${worstZone.signals[signalId].deltaPct > 0 ? '+' : ''}${worstZone.signals[signalId].deltaPct}% from historical baselines.`;
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 h-full min-h-0">
@@ -73,7 +83,11 @@ const SignalPage = () => {
           <ErrorBoundary>
             <div className="glass-panel p-4 rounded-xl flex-1 flex flex-col min-h-[300px]">
               <h3 className="text-sm font-bold text-text-secondary mb-4">{def.label} History</h3>
-              <TrendLineChart data={getHistoryDataForChart()} lines={chartLines} height={250} />
+              {getHistoryDataForChart().length > 0 ? (
+                <TrendLineChart data={getHistoryDataForChart()} lines={chartLines} height={250} />
+              ) : (
+                <div className="flex items-center justify-center h-[250px] text-text-muted">Historical data will appear as readings accumulate.</div>
+              )}
             </div>
           </ErrorBoundary>
         </div>

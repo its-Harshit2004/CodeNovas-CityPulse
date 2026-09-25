@@ -4,7 +4,7 @@ import L from 'leaflet';
 import { zoneGeometry } from '../../mock/zones.geojson';
 import { geo } from '../../utils/geo';
 
-const ZoneLabel = () => {
+const ZoneLabel = ({ zones }) => {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
 
@@ -16,9 +16,14 @@ const ZoneLabel = () => {
 
   if (zoom < 11) return null;
 
+  const zoneIds = zones && zones.length > 0 ? new Set(zones.map(z => z.id)) : null;
+  const features = zoneIds
+    ? zoneGeometry.features.filter(f => zoneIds.has(f.id))
+    : zoneGeometry.features;
+
   return (
     <>
-      {zoneGeometry.features.map(f => {
+      {features.map(f => {
         const bounds = geo.calculateBounds([f]);
         if (!bounds) return null;
         const center = bounds.getCenter();

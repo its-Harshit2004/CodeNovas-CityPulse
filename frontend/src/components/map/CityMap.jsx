@@ -26,6 +26,10 @@ const CityMapContent = ({
   activeSignals = []
 }) => {
   const [internalMode, setInternalMode] = useState(mode);
+  
+  React.useEffect(() => {
+    setInternalMode(mode);
+  }, [mode]);
   const [showEvents, setShowEvents] = useState(showEventsDefault);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
@@ -67,7 +71,7 @@ const CityMapContent = ({
           predictionHorizon={predictionHorizon}
         />
         
-        <ZoneLabel />
+        <ZoneLabel zones={zones} />
         
         <ErrorBoundary fallback={null}>
           <EventLayer events={events} showEvents={showEvents} />
