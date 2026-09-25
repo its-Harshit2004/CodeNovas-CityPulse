@@ -12,6 +12,62 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const normalizePayload = (data) => {
   if (!data) return null;
 
+  if (data.success && Array.isArray(data.zones)) {
+    const p = {
+      city: { id: "city-default", name: "Jaipur", center: [26.91, 75.80] },
+      events: [],
+      signalTypes: [],
+      suddenChanges: [],
+      timeline: [],
+      sources: []
+    };
+
+    p.zones = data.zones.map((bz) => {
+      const severityMap = { low: 'green', medium: 'amber', high: 'red' };
+      const overallStatus = severityMap[bz.alert?.severity] || 'grey';
+      
+      const signals = {};
+      
+      if (bz.metrics && bz.source_status) {
+        signals.traffic = {
+          value: bz.metrics.traffic_pct,
+          status: bz.source_status.traffic === 'unavailable' ? 'grey' : 'green',
+          updatedAt: bz.updated_at
+        };
+        
+        signals.rainfall = {
+          value: bz.metrics.rain_mm,
+          status: bz.source_status.weather === 'unavailable' ? 'grey' : 'green',
+          updatedAt: bz.updated_at
+        };
+        
+        signals.incidents = {
+          value: bz.metrics.incidents,
+          status: bz.source_status.incidents === 'unavailable' ? 'grey' : 'green',
+          updatedAt: bz.updated_at
+        };
+      }
+
+      return {
+        id: bz.zone_id,
+        name: bz.name || `Zone ${bz.zone_id}`,
+        signals: signals,
+        evidence: bz.evidence || [],
+        predictions: undefined,
+        history: undefined,
+        overall: { 
+          status: overallStatus, 
+          summary: bz.alert?.llm_statement || bz.alert?.message || "No data available",
+          riskScore: undefined,
+          confidence: undefined,
+          drivers: undefined
+        }
+      };
+    });
+
+    return p;
+  }
+
   const p = { ...data };
 
   p.city = p.city || { id: "city-default", name: "Unknown City", center: [0, 0] };

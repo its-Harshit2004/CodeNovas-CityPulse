@@ -1,4 +1,3 @@
-
 let getNormalizedData = null;
 let analyzeZoneData = null;
 
@@ -9,21 +8,20 @@ try {
 }
 
 try {
-  analyzeZoneData = require('../analytics/analyzer').analyzeZoneData;
+  analyzeZoneData = require('../analytics/analyzer').analyze;
 } catch (e) {
   console.log('ℹ️ Member 2 (analyzer.js) not ready yet. Using mock analytics.');
 }
 
-
 function getMockPulseData(zoneId) {
-  const isAlertZone = zoneId.toUpperCase() === 'A';
+  const isAlertZone = zoneId.toUpperCase() === 'C'; // Changed to C because C is the alert zone in fixtures
   return {
     zone_id: zoneId.toUpperCase(),
     updated_at: new Date().toISOString(),
     metrics: {
-      rain_mm: isAlertZone ? 35 : 5,
-      traffic_pct: isAlertZone ? 85 : 42,
-      incidents: isAlertZone ? 12 : 2
+      rain_mm: isAlertZone ? 62 : 5,
+      traffic_pct: isAlertZone ? 82 : 42,
+      incidents: isAlertZone ? 18 : 2
     },
     alert: {
       active: isAlertZone,
@@ -31,29 +29,38 @@ function getMockPulseData(zoneId) {
       message: isAlertZone ? 'Possible weather-related disruption' : 'Normal conditions'
     },
     evidence: isAlertZone ? [
-      'Heavy rainfall detected (35mm)',
-      'Traffic congestion 112% above baseline (85%)',
-      'Incidents spike detected (12 active complaints)'
+      'Heavy rainfall detected (62mm)',
+      'Traffic congestion 112% above baseline',
+      'Incidents spike detected'
     ] : ['All metrics within baseline levels'],
     source_status: {
-      weather: 'ok',
-      traffic: 'ok',
-      incidents: 'ok'
+      weather: 'fixture',
+      traffic: 'fixture',
+      incidents: 'fixture'
     }
   };
 }
 
 async function getZonePulse(zoneId) {
+  const allZones = getAllZones();
+  if (!allZones.find(z => z.id.toUpperCase() === zoneId.toUpperCase())) {
+    throw new Error('Zone not found');
+  }
+
   if (!getNormalizedData || !analyzeZoneData) {
     return getMockPulseData(zoneId);
   }
 
   try {
     const rawData = await getNormalizedData(zoneId);
-    const analysis = analyzeZoneData(rawData);
+    if (!rawData) {
+      throw new Error('Zone not found');
+    }
+    const analysis = await analyzeZoneData(rawData);
 
     return {
-      zone_id: zoneId,
+      zone_id: zoneId.toUpperCase(),
+      name: allZones.find(z => z.id.toUpperCase() === zoneId.toUpperCase())?.name,
       updated_at: rawData.timestamp || new Date().toISOString(),
       metrics: {
         rain_mm: rawData.weather?.rain_mm ?? 0,
@@ -63,25 +70,28 @@ async function getZonePulse(zoneId) {
       alert: {
         active: analysis.alert || false,
         severity: analysis.severity || 'low',
-        message: analysis.correlation?.message || 'Normal conditions'
+        message: analysis.correlation?.message || 'Normal conditions',
+        llm_statement: analysis.llm_statement
       },
       evidence: analysis.evidence || [],
       source_status: {
-        weather: rawData.weather ? 'ok' : 'degraded',
-        traffic: rawData.traffic ? 'ok' : 'degraded',
-        incidents: rawData.incidents ? 'ok' : 'degraded'
+        weather: rawData.weather ? 'ok' : 'unavailable',
+        traffic: rawData.traffic ? 'ok' : 'unavailable',
+        incidents: rawData.incidents ? 'ok' : 'unavailable'
       }
     };
   } catch (err) {
+    if (err.message === 'Zone not found') throw err;
+    console.error("Error in getZonePulse:", err);
     return getMockPulseData(zoneId);
   }
 }
 
 function getAllZones() {
   return [
-    { id: 'A', name: 'Downtown / Zone A', status: 'alert' },
-    { id: 'B', name: 'North District / Zone B', status: 'normal' },
-    { id: 'C', name: 'West Industrial / Zone C', status: 'normal' }
+    { id: 'A', name: 'Zone A', status: 'normal' },
+    { id: 'B', name: 'Zone B', status: 'normal' },
+    { id: 'C', name: 'Zone C', status: 'alert' }
   ];
 }
 
