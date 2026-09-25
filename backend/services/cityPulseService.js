@@ -74,10 +74,21 @@ async function getZonePulse(zoneId) {
         llm_statement: analysis.llm_statement
       },
       evidence: analysis.evidence || [],
-      source_status: {
+      source_status: rawData.source_status || {
         weather: rawData.weather ? 'ok' : 'unavailable',
         traffic: rawData.traffic ? 'ok' : 'unavailable',
         incidents: rawData.incidents ? 'ok' : 'unavailable'
+      },
+      signal_status: {
+        traffic: analysis.anomalies?.some(a => a.metric === 'traffic')
+          ? (analysis.severity === 'high' ? 'red' : 'amber')
+          : 'green',
+        incidents: analysis.anomalies?.some(a => a.metric === 'incidents')
+          ? (analysis.severity === 'high' ? 'red' : 'amber')
+          : 'green',
+        rainfall: rawData.weather?.rain_mm > 20
+          ? (rawData.weather.rain_mm > 50 ? 'red' : 'amber')
+          : 'green'
       }
     };
   } catch (err) {

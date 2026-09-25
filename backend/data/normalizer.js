@@ -32,26 +32,47 @@ async function getAllNormalizedData() {
   return fixtureData.map(fixtureZone => {
     const zoneId = fixtureZone.zone_id.toUpperCase();
     
-    let trafficRecord = { congestion_pct: 0 };
+    let trafficRecord = null;
+    let trafficSource = "fixture";
+    
     if (trafficData) {
       const td = trafficData.find(t => t.zone.toUpperCase() === zoneId);
-      if (td) trafficRecord = { congestion_pct: td.congestion };
+      if (td && typeof td.congestion === 'number' && !isNaN(td.congestion)) {
+        trafficRecord = { congestion_pct: td.congestion };
+        trafficSource = "live";
+      }
+    }
+    if (!trafficRecord) {
+      trafficRecord = { congestion_pct: fixtureZone.traffic?.congestion_pct ?? 0 };
     }
     
-    let weatherRecord = { rain_mm: 0 };
+    let weatherRecord = null;
+    let weatherSource = "fixture";
+    
     if (weatherData) {
       const wd = weatherData.find(w => w.zone.toUpperCase() === zoneId);
-      if (wd) weatherRecord = { rain_mm: wd.rainfall };
+      if (wd && typeof wd.rainfall === 'number' && !isNaN(wd.rainfall)) {
+        weatherRecord = { rain_mm: wd.rainfall };
+        weatherSource = "live";
+      }
+    }
+    if (!weatherRecord) {
+      weatherRecord = { rain_mm: fixtureZone.weather?.rain_mm ?? 0 };
     }
     
-    const incidentsRecord = getIncidentData(fixtureZone) || { count: 0 };
+    const incidentsRecord = getIncidentData(fixtureZone) || { count: fixtureZone.incidents?.count ?? 0 };
     
     return {
       zone_id: zoneId,
       timestamp: new Date().toISOString(),
       weather: weatherRecord,
       traffic: trafficRecord,
-      incidents: incidentsRecord
+      incidents: incidentsRecord,
+      source_status: {
+        weather: weatherSource,
+        traffic: trafficSource,
+        incidents: "fixture"
+      }
     };
   });
 }

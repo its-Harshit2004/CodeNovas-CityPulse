@@ -23,7 +23,7 @@ const normalizePayload = (data) => {
     };
 
     p.zones = data.zones.map((bz) => {
-      const severityMap = { low: 'green', medium: 'amber', high: 'red' };
+      const severityMap = { normal: 'green', low: 'green', medium: 'amber', high: 'red' };
       const overallStatus = severityMap[bz.alert?.severity] || 'grey';
       
       const signals = {};
@@ -31,19 +31,19 @@ const normalizePayload = (data) => {
       if (bz.metrics && bz.source_status) {
         signals.traffic = {
           value: bz.metrics.traffic_pct,
-          status: bz.source_status.traffic === 'unavailable' ? 'grey' : 'green',
+          status: bz.signal_status?.traffic || 'grey',
           updatedAt: bz.updated_at
         };
         
         signals.rainfall = {
           value: bz.metrics.rain_mm,
-          status: bz.source_status.weather === 'unavailable' ? 'grey' : 'green',
+          status: bz.signal_status?.rainfall || 'grey',
           updatedAt: bz.updated_at
         };
         
         signals.incidents = {
           value: bz.metrics.incidents,
-          status: bz.source_status.incidents === 'unavailable' ? 'grey' : 'green',
+          status: bz.signal_status?.incidents || 'grey',
           updatedAt: bz.updated_at
         };
       }
