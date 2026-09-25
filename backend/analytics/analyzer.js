@@ -1,9 +1,9 @@
 const { getBaseline } = require("./baseline");
 const { detectAnomalies } = require("./anomalyDetector");
 const { detectCorrelation } = require("./correlationEngine");
+const { generateLLMStatement } = require("../llmStatement");
 
-function analyze(data) {
-  const zoneId = data.zone_id;
+async function analyze(data) {  const zoneId = data.zone_id;
 
   const baseline = getBaseline(zoneId);
 
@@ -64,7 +64,8 @@ function analyze(data) {
     evidence.push("Incidents increased");
   }
 
-  return {
+  
+      const analysis = {
     zone_id: zoneId,
     alert,
     severity,
@@ -77,6 +78,12 @@ function analyze(data) {
     },
 
     evidence
+  };
+
+  const llmStatement = generateLLMStatement(analysis);
+  return {
+    ...analysis,
+    llm_statement: llmStatement
   };
 }
 
