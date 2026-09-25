@@ -1,40 +1,90 @@
-/**
- * Member 2 Analytics & Anomaly Engine
- * Analyzes normalized civic record and determines anomalies and disruptions
- */
-function analyze(normalizedData) {
-  const rain = normalizedData.weather?.rain_mm ?? 0;
-  const traffic = normalizedData.traffic?.congestion_pct ?? 0;
-  const incidents = normalizedData.incidents?.count ?? 0;
+const { getBaseline } = require("./baseline");
+const { detectAnomalies } = require("./anomalyDetector");
+const { detectCorrelation } = require("./correlationEngine");
+const { generateLLMStatement } = require("../llmStatement");
 
-  // Anomaly rules
-  const isRainEvent = rain > 20;
-  const isTrafficAnomaly = traffic > 60;
-  const isIncidentAnomaly = incidents > 5;
+async function analyze(data) {  const zoneId = data.zone_id;
 
-  const isAlert = isRainEvent && isTrafficAnomaly && isIncidentAnomaly;
+  const baseline = getBaseline(zoneId);
+
+  const anomalies = detectAnomalies(data, baseline);
+
+  const correlation = detectCorrelation(anomalies);
+
+  const anomalyList = [];
+
+  if (anomalies.trafficAnomaly) {
+    anomalyList.push({
+      metric: "traffic",
+      current: data.traffic.congestion_pct,
+      baseline: baseline.traffic
+    });
+  }
+
+  if (anomalies.incidentAnomaly) {
+    anomalyList.push({
+      metric: "incidents",
+      current: data.incidents.count,
+      baseline: baseline.incidents
+    });
+  }
+
+  const alert =
+    anomalyList.length > 0 || correlation.detected;
+
+  let severity = "normal";
+
+  if (correlation.detected) {
+    severity = "high";
+  } else if (anomalyList.length > 0) {
+    severity = "medium";
+  }
 
   const evidence = [];
-  if (isRainEvent) evidence.push(`Heavy rainfall detected (${rain}mm)`);
-  if (isTrafficAnomaly) evidence.push(`Traffic congestion ${traffic}% above normal`);
-  if (isIncidentAnomaly) evidence.push(`Incidents spike detected (${incidents} active complaints)`);
 
-  return {
-    zone_id: normalizedData.zone_id,
-    alert: isAlert,
-    severity: isAlert ? 'high' : 'low',
-    anomalies: [
-      { metric: 'traffic', current: traffic, baseline: 40 },
-      { metric: 'incidents', current: incidents, baseline: 2 }
-    ],
+  if (anomalies.rainEvent) {
+    evidence.push("Rain increased");
+  }
+
+  if (anomalies.trafficAnomaly) {
+    if (baseline.traffic > 0) {
+      const increase =
+        ((data.traffic.congestion_pct - baseline.traffic) /
+          baseline.traffic) *
+        100;
+      evidence.push(
+        `Traffic is ${increase.toFixed(1)}% above baseline`
+      );
+    } else {
+      evidence.push("Traffic elevated");
+    }
+  }
+
+  if (anomalies.incidentAnomaly) {
+    evidence.push("Incidents increased");
+  }
+
+  
+      const analysis = {
+    zone_id: zoneId,
+    alert,
+    severity,
+
+    anomalies: anomalyList,
+
     correlation: {
-      signals: ['rain', 'traffic', 'incidents'],
-      message: isAlert ? 'Possible weather-related disruption' : 'Normal conditions'
+      signals: correlation.signals,
+      message: correlation.message
     },
-    evidence: evidence.length > 0 ? evidence : ['All metrics within baseline levels']
+
+    evidence
+  };
+
+  const llmStatement = generateLLMStatement(analysis);
+  return {
+    ...analysis,
+    llm_statement: llmStatement
   };
 }
 
-module.exports = {
-  analyze
-};
+module.exports = { analyze };
