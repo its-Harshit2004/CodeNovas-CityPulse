@@ -73,6 +73,7 @@ async function getZonePulse(zoneId) {
         message: analysis.correlation?.message || 'Normal conditions',
         llm_statement: analysis.llm_statement
       },
+      intelligence: analysis.intelligence,
       evidence: analysis.evidence || [],
       source_status: rawData.source_status || {
         weather: rawData.weather ? 'ok' : 'unavailable',

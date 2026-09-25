@@ -1,7 +1,9 @@
 const { getBaseline } = require("./baseline");
 const { detectAnomalies } = require("./anomalyDetector");
 const { detectCorrelation } = require("./correlationEngine");
-const { generateLLMStatement } = require("../llmStatement");
+const { generateStructuredIntelligence } = require("../llmStatement");
+
+const zoneHistories = {};
 
 async function analyze(data) {  const zoneId = data.zone_id;
 
@@ -10,6 +12,18 @@ async function analyze(data) {  const zoneId = data.zone_id;
   const anomalies = detectAnomalies(data, baseline);
 
   const correlation = detectCorrelation(anomalies);
+
+  if (!zoneHistories[zoneId]) zoneHistories[zoneId] = [];
+  zoneHistories[zoneId].push(data.traffic?.congestion_pct || 0);
+  if (zoneHistories[zoneId].length > 4) zoneHistories[zoneId].shift();
+
+  let trend = "stable";
+  const hist = zoneHistories[zoneId];
+  if (hist.length >= 2) {
+    const diff = hist[hist.length - 1] - hist[hist.length - 2];
+    if (diff > 2) trend = "rising";
+    else if (diff < -2) trend = "falling";
+  }
 
   const anomalyList = [];
 
@@ -80,10 +94,16 @@ async function analyze(data) {  const zoneId = data.zone_id;
     evidence
   };
 
-  const llmStatement = generateLLMStatement(analysis);
+  const intel = generateStructuredIntelligence({
+    ...analysis,
+    trend,
+    rawData: data
+  });
+
   return {
     ...analysis,
-    llm_statement: llmStatement
+    llm_statement: intel.summary, // backwards compatibility
+    intelligence: intel
   };
 }
 

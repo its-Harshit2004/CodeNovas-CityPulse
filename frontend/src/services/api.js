@@ -60,10 +60,11 @@ const normalizePayload = (data) => {
         history: undefined,
         overall: { 
           status: overallStatus, 
-          summary: bz.alert?.llm_statement || bz.alert?.message || "No data available",
+          summary: bz.intelligence?.summary || bz.alert?.llm_statement || bz.alert?.message || "No data available",
           riskScore: undefined,
           confidence: undefined,
-          drivers: undefined
+          drivers: undefined,
+          intelligence: bz.intelligence
         }
       };
     });

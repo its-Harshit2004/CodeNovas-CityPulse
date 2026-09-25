@@ -11,7 +11,7 @@ import { DynamicIcon } from '../utils/iconResolver';
 
 const SignalPage = () => {
   const { signalId } = useParams();
-  const { payload, loading, activeSignals } = useContext(DataContext);
+  const { payload, loading, activeSignals, sessionHistory } = useContext(DataContext);
   const [selectedZone, setSelectedZone] = useState(null);
 
   if (loading || !payload) return <div className="p-4 text-text-muted">Loading...</div>;
@@ -21,12 +21,11 @@ const SignalPage = () => {
   const zones = Array.isArray(payload.zones) ? payload.zones : [];
 
   const getHistoryDataForChart = () => {
-    const h = Array.isArray(zones[0]?.history) ? zones[0].history : [];
-    return h.map((point, i) => {
+    return (sessionHistory || []).map(point => {
       const obj = { t: point.t };
       zones.forEach(z => {
-        const zoneHistory = Array.isArray(z.history) ? z.history : [];
-        obj[z.name || 'Unknown'] = zoneHistory[i]?.[signalId] || 0;
+        const zoneData = point[z.id] || {};
+        obj[z.name || 'Unknown'] = zoneData[signalId] || 0;
       });
       return obj;
     });
@@ -82,11 +81,14 @@ const SignalPage = () => {
 
           <ErrorBoundary>
             <div className="glass-panel p-4 rounded-xl flex-1 flex flex-col min-h-[300px]">
-              <h3 className="text-sm font-bold text-text-secondary mb-4">{def.label} History</h3>
-              {getHistoryDataForChart().length > 0 ? (
+              <h3 className="text-sm font-bold text-text-secondary mb-4 flex items-center justify-between">
+                <span>{def.label} History</span>
+                <span className="text-xs text-text-muted font-normal">Session history — since dashboard opened</span>
+              </h3>
+              {(sessionHistory || []).length > 1 ? (
                 <TrendLineChart data={getHistoryDataForChart()} lines={chartLines} height={250} />
               ) : (
-                <div className="flex items-center justify-center h-[250px] text-text-muted">Historical data will appear as readings accumulate.</div>
+                <div className="flex items-center justify-center h-[250px] text-text-muted">Collecting session readings...</div>
               )}
             </div>
           </ErrorBoundary>

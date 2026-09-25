@@ -17,7 +17,6 @@ const ZoneDetailsPanelContent = ({ zone, activeSignals, onClose }) => {
           <h2 className="text-lg font-bold">{zone.name || 'Unknown Zone'}</h2>
           <div className="flex items-center gap-2 mt-1">
             <StatusBadge status={zone.overall?.status} />
-            <span className="text-xs text-text-muted">Risk Score: {zone.overall?.riskScore ?? 0}/100</span>
           </div>
         </div>
         <button onClick={onClose} className="p-2 hover:bg-[var(--navy-panel-hover)] rounded-md transition-colors"><X size={18}/></button>
@@ -25,7 +24,7 @@ const ZoneDetailsPanelContent = ({ zone, activeSignals, onClose }) => {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
         <InsightCard 
-          summary={zone.overall?.summary} 
+          summary={zone.overall?.intelligence?.compact || zone.overall?.summary} 
           confidence={zone.overall?.confidence} 
           generatedAt={zone.overall?.generatedAt} 
         />

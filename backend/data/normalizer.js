@@ -11,8 +11,29 @@ function loadFixtureData() {
   return rawData.zones.sort((a, b) => a.zone_id.localeCompare(b.zone_id));
 }
 
+const FIXTURE_SCENARIOS = [
+  { A: { traffic: 82, incidents: 18 }, B: { traffic: 55, incidents: 7 }, C: { traffic: 30, incidents: 3 } },
+  { A: { traffic: 72, incidents: 14 }, B: { traffic: 64, incidents: 9 }, C: { traffic: 34, incidents: 2 } },
+  { A: { traffic: 61, incidents: 10 }, B: { traffic: 76, incidents: 12 }, C: { traffic: 43, incidents: 4 } },
+  { A: { traffic: 87, incidents: 20 }, B: { traffic: 68, incidents: 8 }, C: { traffic: 32, incidents: 3 } }
+];
+
+function getCurrentFixtureScenario() {
+  const scenarioIndex = Math.floor(Date.now() / 15000) % FIXTURE_SCENARIOS.length;
+  return FIXTURE_SCENARIOS[scenarioIndex];
+}
+
+let cachedAllData = null;
+let lastCacheTime = 0;
+
 async function getAllNormalizedData() {
+  const now = Date.now();
+  if (cachedAllData && (now - lastCacheTime < 1000)) {
+    return cachedAllData;
+  }
+  
   const fixtureData = loadFixtureData();
+  const currentScenario = getCurrentFixtureScenario();
   
   let trafficData = null;
   let weatherData = null;
@@ -29,7 +50,7 @@ async function getAllNormalizedData() {
     console.warn("Weather source unavailable:", error.message);
   }
 
-  return fixtureData.map(fixtureZone => {
+  const result = fixtureData.map(fixtureZone => {
     const zoneId = fixtureZone.zone_id.toUpperCase();
     
     let trafficRecord = null;
@@ -43,7 +64,8 @@ async function getAllNormalizedData() {
       }
     }
     if (!trafficRecord) {
-      trafficRecord = { congestion_pct: fixtureZone.traffic?.congestion_pct ?? 0 };
+      const scenario = currentScenario[zoneId];
+      trafficRecord = { congestion_pct: scenario ? scenario.traffic : (fixtureZone.traffic?.congestion_pct ?? 0) };
     }
     
     let weatherRecord = null;
@@ -60,7 +82,8 @@ async function getAllNormalizedData() {
       weatherRecord = { rain_mm: fixtureZone.weather?.rain_mm ?? 0 };
     }
     
-    const incidentsRecord = getIncidentData(fixtureZone) || { count: fixtureZone.incidents?.count ?? 0 };
+    const scenario = currentScenario[zoneId];
+    const incidentsRecord = { count: scenario ? scenario.incidents : (fixtureZone.incidents?.count ?? 0) };
     
     return {
       zone_id: zoneId,
@@ -75,6 +98,11 @@ async function getAllNormalizedData() {
       }
     };
   });
+  
+  cachedAllData = result;
+  lastCacheTime = Date.now();
+  
+  return result;
 }
 
 async function getNormalizedData(zoneId) {

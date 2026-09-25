@@ -9,7 +9,7 @@ import StatusBadge from '../components/StatusBadge';
 import ErrorBoundary from '../components/ErrorBoundary';
 
 const Dashboard = () => {
-  const { payload, activeSignals, loading } = useContext(DataContext);
+  const { payload, activeSignals, loading, sessionHistory } = useContext(DataContext);
   const [selectedZoneId, setSelectedZoneId] = useState(null);
 
   if (loading || !payload) return <div className="p-4 flex h-full items-center justify-center text-text-muted">Loading command center...</div>;
@@ -23,18 +23,21 @@ const Dashboard = () => {
   const selectedZone = zones.find(z => z.id === selectedZoneId);
 
   // Derive city overall
-  const activeAlerts = events.filter(e => e.status !== 'green').length;
+  const activeAlerts = zones.filter(zone => zone.alert?.active === true).length;
   
   // Basic overall stats
-  let maxRisk = null;
   let worseStatus = 'green';
   zones.forEach(z => {
-    if (z.overall?.riskScore !== undefined && z.overall?.riskScore !== null) {
-      if (maxRisk === null || z.overall.riskScore > maxRisk) maxRisk = z.overall.riskScore;
-    }
-    if (z.overall?.status === 'red') worseStatus = 'red';
-    else if (z.overall?.status === 'amber' && worseStatus !== 'red') worseStatus = 'amber';
+    if (z.alert?.active && z.alert?.severity === 'high') worseStatus = 'red';
+    else if (z.alert?.active && worseStatus !== 'red') worseStatus = 'amber';
   });
+
+  const generatedTimeline = zones.map(z => ({
+    id: z.id,
+    time: z.updated_at || new Date().toISOString(),
+    title: `${z.name || 'Unknown'} — ${z.alert?.message || 'conditions normal'}`,
+    description: z.evidence?.length > 0 ? z.evidence[0] : (z.alert?.llm_statement || '')
+  }));
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 h-full">
@@ -48,8 +51,8 @@ const Dashboard = () => {
             <StatusBadge status={worseStatus} className="px-3 py-1 text-sm" />
           </div>
           <div className="flex gap-6 text-sm">
-            <div>Risk Score: <span className="font-mono font-bold text-lg">{maxRisk !== null ? maxRisk : '—'}</span><span className="text-text-muted">/100 max</span></div>
-            <div>Active Events: <span className="font-mono font-bold text-lg text-amber-400">{activeAlerts}</span></div>
+            <div>Alerting Zones: <span className="font-mono font-bold text-lg">{activeAlerts}</span><span className="text-text-muted"> / {zones.length}</span></div>
+            <div>Active Alerts: <span className="font-mono font-bold text-lg text-amber-400">{activeAlerts}</span></div>
           </div>
         </div>
 
@@ -58,6 +61,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
             {safeSignals.slice(0, 3).map(sig => {
               let total = 0, count = 0;
+              let prevTotal = 0, prevCount = 0;
               zones.forEach(z => {
                 const sigData = z.signals?.[sig.id];
                 if (sigData !== undefined && sigData !== null) {
@@ -65,10 +69,24 @@ const Dashboard = () => {
                   count++;
                 }
               });
+              if (sessionHistory && sessionHistory.length > 1) {
+                const prevEntry = sessionHistory[sessionHistory.length - 2];
+                zones.forEach(z => {
+                   if (prevEntry[z.id] && prevEntry[z.id][sig.id] !== undefined) {
+                      prevTotal += prevEntry[z.id][sig.id];
+                      prevCount++;
+                   }
+                });
+              }
+              
               const avg = count ? Math.round(total / count) : 0;
-              return <KpiCard key={sig.id} title={`Avg ${sig.label}`} value={sig.format ? sig.format(avg) : avg} trend="flat" icon={sig.icon} />;
+              const prevAvg = prevCount ? Math.round(prevTotal / prevCount) : avg;
+              const delta = avg - prevAvg;
+              const trend = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+              
+              return <KpiCard key={sig.id} title={`Avg ${sig.label}`} value={sig.format ? sig.format(avg) : avg} delta={Math.abs(delta)} trend={trend} icon={sig.icon} />;
             })}
-            <KpiCard title="Active Events" value={activeAlerts} unit="total" trend={activeAlerts > 0 ? 'up' : 'flat'} icon="alert-triangle" highlight={activeAlerts > 0} />
+            <KpiCard title="Active Alerts" value={activeAlerts} unit="total" trend={activeAlerts > 0 ? 'up' : 'flat'} icon="alert-triangle" highlight={activeAlerts > 0} />
           </div>
         </ErrorBoundary>
 
@@ -106,7 +124,7 @@ const Dashboard = () => {
                   <StatusBadge status={z.overall?.status} />
                   <span className="text-sm font-semibold">{z.name || 'Unknown'}</span>
                 </div>
-                <span className="text-xs text-text-muted font-mono">{z.overall?.riskScore !== undefined && z.overall?.riskScore !== null ? `${z.overall.riskScore}/100` : '—'}</span>
+                <span className="text-xs text-text-muted font-mono">{z.alert?.severity || 'normal'}</span>
               </button>
             ))}
           </div>
@@ -115,10 +133,10 @@ const Dashboard = () => {
         {/* Live Timeline */}
         <div className="glass-panel p-4 rounded-xl flex-1 flex flex-col min-h-[200px]">
           <h3 className="text-sm font-bold text-text-secondary mb-4 flex items-center gap-2">
-            Live Timeline <span className="relative flex h-2 w-2 ml-auto"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+            Activity Timeline <span className="relative flex h-2 w-2 ml-auto"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
           </h3>
           <div className="flex-1 overflow-y-auto pr-2">
-            <Timeline events={timeline} />
+            <Timeline events={generatedTimeline} />
           </div>
         </div>
 
