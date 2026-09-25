@@ -10,6 +10,7 @@ export const useCityData = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sessionHistory, setSessionHistory] = useState([]);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -17,6 +18,20 @@ export const useCityData = () => {
       const data = await api.getFullState();
       
       setPayload(data);
+      setSessionHistory(prev => {
+        const newEntry = { t: new Date().toISOString() };
+        if (data && data.zones) {
+          data.zones.forEach(z => {
+            newEntry[z.id] = {
+              traffic: z.signals?.traffic?.value ?? 0,
+              rainfall: z.signals?.rainfall?.value ?? 0,
+              incidents: z.signals?.incidents?.value ?? 0
+            };
+          });
+        }
+        const updated = [...prev, newEntry];
+        return updated.slice(-20);
+      });
       setLastChecked(dayjs().format('HH:mm:ss'));
       setError(false);
       setLoading(false);
@@ -84,6 +99,7 @@ export const useCityData = () => {
     error, 
     loading, 
     manualRefresh, 
-    resetDemo 
+    resetDemo,
+    sessionHistory
   };
 };

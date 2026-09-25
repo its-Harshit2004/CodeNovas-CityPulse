@@ -12,6 +12,66 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const normalizePayload = (data) => {
   if (!data) return null;
 
+  if (data.success && Array.isArray(data.zones)) {
+    const p = {
+      city: { id: "city-default", name: "Jaipur", center: [26.91, 75.80] },
+      events: [],
+      signalTypes: [],
+      suddenChanges: [],
+      timeline: [],
+      sources: []
+    };
+
+    p.zones = data.zones.map((bz) => {
+      const severityMap = { normal: 'green', low: 'green', medium: 'amber', high: 'red' };
+      const overallStatus = severityMap[bz.alert?.severity] || 'grey';
+      
+      const signals = {};
+      
+      if (bz.metrics && bz.source_status) {
+        signals.traffic = {
+          value: bz.metrics.traffic_pct,
+          status: bz.signal_status?.traffic || 'grey',
+          source: bz.source_status.traffic || 'fixture',
+          updatedAt: bz.updated_at
+        };
+        
+        signals.rainfall = {
+          value: bz.metrics.rain_mm,
+          status: bz.signal_status?.rainfall || 'grey',
+          source: bz.source_status.weather || 'fixture',
+          updatedAt: bz.updated_at
+        };
+        
+        signals.incidents = {
+          value: bz.metrics.incidents,
+          status: bz.signal_status?.incidents || 'grey',
+          source: bz.source_status.incidents || 'fixture',
+          updatedAt: bz.updated_at
+        };
+      }
+
+      return {
+        id: bz.zone_id,
+        name: bz.name || `Zone ${bz.zone_id}`,
+        signals: signals,
+        evidence: bz.evidence || [],
+        predictions: undefined,
+        history: undefined,
+        overall: { 
+          status: overallStatus, 
+          summary: bz.intelligence?.summary || bz.alert?.llm_statement || bz.alert?.message || "No data available",
+          riskScore: undefined,
+          confidence: undefined,
+          drivers: undefined,
+          intelligence: bz.intelligence
+        }
+      };
+    });
+
+    return p;
+  }
+
   const p = { ...data };
 
   p.city = p.city || { id: "city-default", name: "Unknown City", center: [0, 0] };

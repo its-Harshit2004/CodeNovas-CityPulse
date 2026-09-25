@@ -5,9 +5,8 @@ const zonesRouter = require("./routes/zones");
 const pulseRouter = require("./routes/pulse");
 const alertsRouter = require("./routes/alerts");
 
-const { zones } = require("./data/zones");
-const { sampleData } = require("./data/sampleData");
-const { analyze } = require("./analytics/analyzer");
+const { getAllZones } = require("./services/cityPulseService");
+const { getZonePulse } = require("./services/cityPulseService");
 
 const app = express();
 
@@ -19,16 +18,12 @@ app.use("/api/zones", zonesRouter);
 app.use("/api/pulse", pulseRouter);
 app.use("/api/alerts", alertsRouter);
 
-// Analytics API
-app.get("/api/dashboard", async (req, res) => {
+// State API
+app.get("/api/state", async (req, res) => {
   try {
-    const summaries = await Promise.all(
-      Object.keys(sampleData).map(async (zoneId) => {
-        const data = sampleData[zoneId];
-
-        return await analyze(data);
-      })
-    );
+    const allZones = getAllZones();
+    const zoneDataPromises = allZones.map(zone => getZonePulse(zone.id));
+    const summaries = await Promise.all(zoneDataPromises);
 
     res.json({
       success: true,
@@ -36,11 +31,11 @@ app.get("/api/dashboard", async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error("Dashboard analysis failed:", error);
+    console.error("State generation failed:", error);
 
     res.status(500).json({
       success: false,
-      error: "Failed to analyze dashboard data"
+      error: "Failed to fetch state data"
     });
   }
 });
@@ -60,5 +55,5 @@ app.listen(PORT, () => {
   console.log("  GET /api/zones");
   console.log("  GET /api/pulse");
   console.log("  GET /api/alerts");
-  console.log("  GET /api/dashboard");
+  console.log("  GET /api/state");
 });

@@ -11,7 +11,7 @@ import { DynamicIcon } from '../utils/iconResolver';
 
 const SignalPage = () => {
   const { signalId } = useParams();
-  const { payload, loading, activeSignals } = useContext(DataContext);
+  const { payload, loading, activeSignals, sessionHistory } = useContext(DataContext);
   const [selectedZone, setSelectedZone] = useState(null);
 
   if (loading || !payload) return <div className="p-4 text-text-muted">Loading...</div>;
@@ -21,12 +21,11 @@ const SignalPage = () => {
   const zones = Array.isArray(payload.zones) ? payload.zones : [];
 
   const getHistoryDataForChart = () => {
-    const h = Array.isArray(zones[0]?.history) ? zones[0].history : [];
-    return h.map((point, i) => {
+    return (sessionHistory || []).map(point => {
       const obj = { t: point.t };
       zones.forEach(z => {
-        const zoneHistory = Array.isArray(z.history) ? z.history : [];
-        obj[z.name || 'Unknown'] = zoneHistory[i]?.[signalId] || 0;
+        const zoneData = point[z.id] || {};
+        obj[z.name || 'Unknown'] = zoneData[signalId] || 0;
       });
       return obj;
     });
@@ -51,7 +50,17 @@ const SignalPage = () => {
   });
   
   const worstZone = sortedZones[0];
-  const insightText = worstZone ? `${def.label} analysis indicates ${worstZone.name || 'Unknown Zone'} is showing the most significant deviation (${worstZone.signals?.[signalId]?.deltaPct || 0}%) from historical baselines.` : `No significant ${def.label} deviations detected.`;
+  
+  let insightText = "No anomaly detected in the current reading.";
+  if (worstZone) {
+    if (worstZone.overall?.summary && worstZone.overall?.summary !== "No data available") {
+      insightText = worstZone.overall.summary;
+    } else if (worstZone.evidence && worstZone.evidence.length > 0) {
+      insightText = worstZone.evidence.join(' ');
+    } else if (worstZone.signals?.[signalId]?.deltaPct !== undefined && worstZone.signals?.[signalId]?.deltaPct !== null) {
+      insightText = `${def.label} analysis indicates ${worstZone.name || 'Unknown Zone'} is showing a deviation of ${worstZone.signals[signalId].deltaPct > 0 ? '+' : ''}${worstZone.signals[signalId].deltaPct}% from historical baselines.`;
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 h-full min-h-0">
@@ -72,8 +81,15 @@ const SignalPage = () => {
 
           <ErrorBoundary>
             <div className="glass-panel p-4 rounded-xl flex-1 flex flex-col min-h-[300px]">
-              <h3 className="text-sm font-bold text-text-secondary mb-4">{def.label} History</h3>
-              <TrendLineChart data={getHistoryDataForChart()} lines={chartLines} height={250} />
+              <h3 className="text-sm font-bold text-text-secondary mb-4 flex items-center justify-between">
+                <span>{def.label} History</span>
+                <span className="text-xs text-text-muted font-normal">Session history — since dashboard opened</span>
+              </h3>
+              {(sessionHistory || []).length > 1 ? (
+                <TrendLineChart data={getHistoryDataForChart()} lines={chartLines} height={250} />
+              ) : (
+                <div className="flex items-center justify-center h-[250px] text-text-muted">Collecting session readings...</div>
+              )}
             </div>
           </ErrorBoundary>
         </div>

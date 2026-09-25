@@ -3,7 +3,7 @@ import { Cloud, Wind, Droplets, RefreshCw, AlertCircle } from 'lucide-react';
 import { DataContext } from '../App';
 
 const TopBar = () => {
-  const { nextCheckIn, lastChecked, error, manualRefresh, resetDemo } = useContext(DataContext);
+  const { payload, nextCheckIn, lastChecked, error, manualRefresh, resetDemo } = useContext(DataContext);
 
   return (
     <header className="h-16 glass-panel border-b border-x-0 border-t-0 flex items-center justify-between px-4 md:px-6 z-10 shrink-0">
@@ -12,9 +12,9 @@ const TopBar = () => {
         
         {/* Weather Strip */}
         <div className="hidden lg:flex items-center gap-4 text-sm text-text-secondary border-l border-[var(--navy-border)] pl-4">
-          <span className="flex items-center gap-1"><Cloud size={14}/> 24°C</span>
-          <span className="flex items-center gap-1"><Wind size={14}/> 12 km/h</span>
-          <span className="flex items-center gap-1"><Droplets size={14}/> 70%</span>
+          <span className="flex items-center gap-1 font-mono text-xs">API CONNECTED</span>
+          {payload?.zones?.[0]?.source_status?.weather && <span className="flex items-center gap-1 font-mono text-xs">Weather {payload.zones[0].source_status.weather.toUpperCase()}</span>}
+          {payload?.zones?.[0]?.source_status?.traffic && <span className="flex items-center gap-1 font-mono text-xs">Traffic {payload.zones[0].source_status.traffic.toUpperCase()}</span>}
         </div>
       </div>
 
@@ -45,13 +45,15 @@ const TopBar = () => {
           <RefreshCw size={16} />
         </button>
 
-        <button 
-          onClick={resetDemo}
-          className="text-xs border border-[var(--navy-border)] px-2 py-1 rounded hover:bg-[var(--navy-panel-hover)] text-text-muted transition-colors"
-          title="Reset Demo Scenario"
-        >
-          Reset Demo
-        </button>
+        {import.meta.env.VITE_USE_MOCK === 'true' && (
+          <button 
+            onClick={resetDemo}
+            className="text-xs border border-[var(--navy-border)] px-2 py-1 rounded hover:bg-[var(--navy-panel-hover)] text-text-muted transition-colors"
+            title="Reset Demo Scenario"
+          >
+            Reset Demo
+          </button>
+        )}
       </div>
     </header>
   );
