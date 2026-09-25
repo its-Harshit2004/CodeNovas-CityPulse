@@ -13,7 +13,7 @@ export const useCityData = () => {
 
   const fetchAll = useCallback(async () => {
     try {
-      await api.advanceDemo();
+     
       const data = await api.getFullState();
       
       setPayload(data);

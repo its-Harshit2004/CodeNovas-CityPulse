@@ -1,15 +1,19 @@
 import { getFullPayload, advanceTick, resetTick } from '../data/mockScenario';
 
-const USE_MOCK = true;
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+const USE_MOCK =
+  import.meta.env.VITE_USE_MOCK === "true";
 // const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const normalizePayload = (data) => {
   if (!data) return null;
-  
+
   const p = { ...data };
-  
+
   p.city = p.city || { id: "city-default", name: "Unknown City", center: [0, 0] };
   p.zones = Array.isArray(p.zones) ? p.zones : [];
   p.events = Array.isArray(p.events) ? p.events : [];
@@ -50,10 +54,15 @@ export const api = {
         await delay(300);
         return normalizePayload(getFullPayload());
       }
-      // const res = await fetch(`${VITE_API_BASE_URL}/state`);
-      // const data = await res.json();
-      // return normalizePayload(data);
-    } catch(err) {
+      const res = await fetch(`${API_BASE}/api/state`);
+
+      if (!res.ok) {
+        throw new Error(`Backend request failed: ${res.status}`);
+      }
+
+      const data = await res.json();
+      return normalizePayload(data);
+    } catch (err) {
       console.error('API Error', err);
       throw err;
     }

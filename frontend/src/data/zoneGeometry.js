@@ -1,10 +1,11 @@
 export const zoneGeometry = {
   type: "FeatureCollection",
+
   features: [
     {
       type: "Feature",
-      id: "zone-a",
-      properties: { name: "Zone A (North)", id: "zone-a" },
+      id: "A",
+      properties: { name: "Zone A (North)", id: "A" },
       geometry: {
         type: "Polygon",
         coordinates: [
@@ -18,10 +19,11 @@ export const zoneGeometry = {
         ]
       }
     },
+
     {
       type: "Feature",
-      id: "zone-b",
-      properties: { name: "Zone B (Center)", id: "zone-b" },
+      id: "B",
+      properties: { name: "Zone B (Center)", id: "B" },
       geometry: {
         type: "Polygon",
         coordinates: [
@@ -35,10 +37,11 @@ export const zoneGeometry = {
         ]
       }
     },
+
     {
       type: "Feature",
-      id: "zone-c",
-      properties: { name: "Zone C (South)", id: "zone-c" },
+      id: "C",
+      properties: { name: "Zone C (South)", id: "C" },
       geometry: {
         type: "Polygon",
         coordinates: [
