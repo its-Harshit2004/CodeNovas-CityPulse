@@ -2,64 +2,72 @@ const fs = require("fs");
 const path = require("path");
 
 // --------------------------------
-// 1. Load fixture data
+// Load fixture data
 // --------------------------------
 
-const fixturePath = path.join(
-    __dirname,
-    "fixtures",
-    "citypulse.json"
-);
+const fixturePath = path.join(__dirname, "fixtures", "citypulse.json");
 
-const rawData = JSON.parse(
-    fs.readFileSync(fixturePath, "utf-8")
-);
+function loadFixtureData() {
+  const rawData = JSON.parse(fs.readFileSync(fixturePath, "utf-8"));
 
+  return rawData.zones.sort((a, b) => a.zone_id.localeCompare(b.zone_id));
+}
 
 // --------------------------------
-// 2. Get zone data
+// Member 3 API functions
 // --------------------------------
 
-const normalizedData = rawData.zones;
+function getAllNormalizedData() {
+  return loadFixtureData();
+}
 
+function getNormalizedData(zoneId) {
+  const zones = loadFixtureData();
+
+  const zone = zones.find(
+    (z) => z.zone_id.toUpperCase() === zoneId.toUpperCase()
+  );
+
+  return zone || null;
+}
 
 // --------------------------------
-// 3. Sort by zone
+// Save normalized output (for testing/demo)
 // --------------------------------
 
-normalizedData.sort((a, b) =>
-    a.zone_id.localeCompare(b.zone_id)
-);
+function saveNormalizedOutput() {
+  const normalizedData = getAllNormalizedData();
 
-
-// --------------------------------
-// 4. Save normalized output
-// --------------------------------
-
-const outputPath = path.join(
+  const outputPath = path.join(
     __dirname,
     "fixtures",
     "normalized-events.json"
-);
+  );
 
-fs.writeFileSync(
+  fs.writeFileSync(
     outputPath,
     JSON.stringify(normalizedData, null, 2)
-);
+  );
 
+  console.log("\n--------------------------------");
+  console.log("CITYPULSE NORMALIZED DATA");
+  console.log("--------------------------------\n");
+
+  console.log(JSON.stringify(normalizedData, null, 2));
+  console.log(`\nSaved to: ${outputPath}`);
+}
+
+// Run only if executed directly
+if (require.main === module) {
+  saveNormalizedOutput();
+}
 
 // --------------------------------
-// 5. Display result
+// Exports
 // --------------------------------
 
-console.log("\n--------------------------------");
-console.log("CITYPULSE NORMALIZED DATA");
-console.log("--------------------------------\n");
-
-console.log(
-    JSON.stringify(normalizedData, null, 2)
-);
-
-console.log(
-    `\nSaved to: ${outputPath}`
-);
+module.exports = {
+  getNormalizedData,
+  getAllNormalizedData,
+  saveNormalizedOutput,
+};
