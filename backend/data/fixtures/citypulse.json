@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [
   {
     "zone_id": "A",
@@ -39,3 +40,60 @@
     }
   }
 ]
+=======
+{
+  "weather": [
+    {
+      "timestamp": "2026-09-24T15:00:00Z",
+      "zone": "ZONE-A",
+      "rainfall": 12
+    },
+    {
+      "timestamp": "2026-09-24T15:05:00Z",
+      "zone": "ZONE-A",
+      "rainfall": 35
+    },
+    {
+      "timestamp": "2026-09-24T15:10:00Z",
+      "zone": "ZONE-A",
+      "rainfall": 62
+    }
+  ],
+
+  "traffic": [
+    {
+      "timestamp": "2026-09-24T15:00:00Z",
+      "zone": "ZONE-A",
+      "congestion": 30
+    },
+    {
+      "timestamp": "2026-09-24T15:05:00Z",
+      "zone": "ZONE-A",
+      "congestion": 55
+    },
+    {
+      "timestamp": "2026-09-24T15:10:00Z",
+      "zone": "ZONE-A",
+      "congestion": 82
+    }
+  ],
+
+  "incidents": [
+    {
+      "timestamp": "2026-09-24T15:00:00Z",
+      "zone": "ZONE-A",
+      "complaints": 3
+    },
+    {
+      "timestamp": "2026-09-24T15:05:00Z",
+      "zone": "ZONE-A",
+      "complaints": 7
+    },
+    {
+      "timestamp": "2026-09-24T15:10:00Z",
+      "zone": "ZONE-A",
+      "complaints": 18
+    }
+  ]
+}
+>>>>>>> ff9a8c27c99d701839a02d269f2b708ddb3076ea
