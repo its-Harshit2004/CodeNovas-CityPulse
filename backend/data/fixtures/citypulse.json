@@ -1,0 +1,41 @@
+[
+  {
+    "zone_id": "A",
+    "timestamp": "2026-09-24T12:10:00Z",
+    "weather": {
+      "rain_mm": 35
+    },
+    "traffic": {
+      "congestion_pct": 85
+    },
+    "incidents": {
+      "count": 12
+    }
+  },
+  {
+    "zone_id": "B",
+    "timestamp": "2026-09-24T12:10:00Z",
+    "weather": {
+      "rain_mm": 5
+    },
+    "traffic": {
+      "congestion_pct": 42
+    },
+    "incidents": {
+      "count": 2
+    }
+  },
+  {
+    "zone_id": "C",
+    "timestamp": "2026-09-24T12:10:00Z",
+    "weather": {
+      "rain_mm": 10
+    },
+    "traffic": {
+      "congestion_pct": 50
+    },
+    "incidents": {
+      "count": 4
+    }
+  }
+]
